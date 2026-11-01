@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Тренер Евгений Михалин | В угол ринга</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #121316;
+      --card-bg: #1c1e24;
+      --accent: #e53935;
+      --accent-glow: rgba(229, 57, 53, 0.35);
+      --text: #ffffff;
+      --text-muted: #9e9ea7;
+      --border: #2a2d36;
+      --gold: #f5a623;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text);
+      padding: 16px;
+      padding-bottom: 90px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 18px 0 10px 4px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .card-option {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-option.active {
+      border-color: var(--accent);
+      background: rgba(229, 57, 53, 0.08);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .card-option .icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .card-option .title {
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .card-option .desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    /* Форматы */
+    .formats-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .format-chip {
+      flex: 1;
+      min-width: 90px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .format-chip.active {
+      border-color: var(--gold);
+      background: rgba(245, 166, 35, 0.1);
+      color: var(--gold);
+    }
+
+    /* Календарь и слоты */
+    .dates-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .date-card {
+      min-width: 58px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .date-card.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .date-card .day-name {
+      font-size: 11px;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .date-card .day-num {
+      font-size: 16px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .time-slot {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 4px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .time-slot.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* Форма ввода */
+    .input-box {
+      margin-top: 10px;
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-box label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .input-box input, .input-box select {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      width: 100%;
+    }
+
+    /* Нижняя кнопка */
+    .footer-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(18, 19, 22, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">В угол ринга</div>
+    <h1>Евгений Михалин</h1>
+    <div class="subtitle">Персональный тренер по боксу и ОФП</div>
+  </header>
+
+  <!-- Локация -->
+  <div class="section-title">📍 Выберите зал</div>
+  <div class="input-box" style="margin-top:0;">
+    <label>Локация тренировки</label>
+    <select id="gymSelect">
+      <option value="Зал 1 (Центр / Основной)">Зал №1 (Центральный ринг)</option>
+      <option value="Зал 2 (Север / Кроссфит)">Зал №2 (Кроссфит зона)</option>
+      <option value="Договорной зал / Выезд">Зал по согласованию</option>
+    </select>
+  </div>
+
+  <!-- Направление -->
+  <div class="section-title">🥊 Программа подготовки</div>
+  <div class="grid-2">
+    <div class="card-option active" data-program="Школа бокса (техника, защита, передвижения)">
+      <div class="icon">🥊</div>
+      <div class="title">Школа бокса</div>
+      <div class="desc">Техника ударов, глухая/активная защита, классические передвижения</div>
+    </div>
+    <div class="card-option" data-program="Удары ногами">
+      <div class="icon">🥋</div>
+      <div class="title">Удары ногами</div>
+      <div class="desc">Постановка траектории, баланс, силовые и серийные удары</div>
+    </div>
+    <div class="card-option" data-program="Табата / КроссФит (Интенсив)">
+      <div class="icon">🔥</div>
+      <div class="title">Табата / КроссФит</div>
+      <div class="desc">Скоростно-силовая выносливость, взрывная работа, кардио</div>
+    </div>
+    <div class="card-option" data-program="Комплекс (Бокс + ОФП)">
+      <div class="icon">⚡</div>
+      <div class="title">Комплекс</div>
+      <div class="desc">Боксерская база + круговой силовой блок в конце</div>
+    </div>
+  </div>
+
+  <!-- Формат -->
+  <div class="section-title">👥 Формат тренировки</div>
+  <div class="formats-row">
+    <div class="format-chip active" data-format="Персональная">Персональная</div>
+    <div class="format-chip" data-format="Сплит (парная)">Сплит (вдвоем)</div>
+    <div class="format-chip" data-format="Мини-группа">Мини-группа</div>
+  </div>
+
+  <!-- Календарь -->
+  <div class="section-title">📅 Дата занятия</div>
+  <div class="dates-scroll" id="datesContainer"></div>
+
+  <!-- Свободные окна -->
+  <div class="section-title">⏰ Свободное время</div>
+  <div class="time-grid" id="timesContainer">
+    <div class="time-slot active">09:00</div>
+    <div class="time-slot">11:00</div>
+    <div class="time-slot">14:00</div>
+    <div class="time-slot">17:00</div>
+    <div class="time-slot">19:00</div>
+    <div class="time-slot">20:30</div>
+  </div>
+
+  <!-- Контакты -->
+  <div class="section-title">👤 Данные атлета</div>
+  <div class="input-box">
+    <label>Имя и фамилия</label>
+    <input type="text" id="clientName" placeholder="Например: Алексей">
+  </div>
+  <div class="input-box">
+    <label>Телефон / Telegram</label>
+    <input type="text" id="clientPhone" placeholder="+7 (___) ___-__-__">
+  </div>
+
+  <!-- Кнопка -->
+  <div class="footer-bar">
+    <button class="btn-submit" id="submitBtn">Записаться в угол ринга</button>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.ready();
+    }
+
+    // Генерация ближайших 7 дней
+    const datesContainer = document.getElementById('datesContainer');
+    const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+    const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+    const now = new Date();
+
+    let selectedDate = '';
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(now.getDate() + i);
+      const card = document.createElement('div');
+      card.className = 'date-card' + (i === 0 ? ' active' : '');
+      card.innerHTML = `
+        <div class="day-name">${daysNames[d.getDay()]}</div>
+        <div class="day-num">${d.getDate()}</div>
+      `;
+      const dateStr = `${d.getDate()} ${months[d.getMonth()]}`;
+      if (i === 0) selectedDate = dateStr;
+
+      card.onclick = () => {
+        document.querySelectorAll('.date-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedDate = dateStr;
+      };
+      datesContainer.appendChild(card);
+    }
+
+    // Выбор программы
+    let selectedProgram = 'Школа бокса (техника, защита, передвижения)';
+    document.querySelectorAll('.card-option').forEach(c => {
+      c.onclick = () => {
+        document.querySelectorAll('.card-option').forEach(el => el.classList.remove('active'));
+        c.classList.add('active');
+        selectedProgram = c.getAttribute('data-program');
+      };
+    });
+
+    // Выбор формата
+    let selectedFormat = 'Персональная';
+    document.querySelectorAll('.format-chip').forEach(c => {
+      c.onclick = () => {
+        document.querySelectorAll('.format-chip').forEach(el => el.classList.remove('active'));
+        c.classList.add('active');
+        selectedFormat = c.getAttribute('data-format');
+      };
+    });
+
+    // Выбор времени
+    let selectedTime = '09:00';
+    document.querySelectorAll('.time-slot').forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
+        t.classList.add('active');
+        selectedTime = t.innerText;
+      };
+    });
+
+    // Автозаполнение имени из Telegram
+    if (tg?.initDataUnsafe?.user) {
+      const user = tg.initDataUnsafe.user;
+      document.getElementById('clientName').value = [user.first_name, user.last_name].filter(Boolean).join(' ');
+      if (user.username) {
+        document.getElementById('clientPhone').value = '@' + user.username;
+      }
+    }
+
+    // Отправка данных
+    document.getElementById('submitBtn').onclick = () => {
+      const name = document.getElementById('clientName').value.trim();
+      const phone = document.getElementById('clientPhone').value.trim();
+      const gym = document.getElementById('gymSelect').value;
+
+      if (!name) {
+        alert('Пожалуйста, укажите ваше имя');
+        return;
+      }
+
+      const bookingData = {
+        action: "booking",
+        trainer: "Евгений Михалин",
+        gym: gym,
+        program: selectedProgram,
+        format: selectedFormat,
+        date: selectedDate,
+        time: selectedTime,
+        client_name: name,
+        client_contact: phone
+      };
+
+      if (tg) {
+        tg.sendData(JSON.stringify(bookingData));
+      } else {
+        alert('Заявка сформирована: ' + JSON.stringify(bookingData, null, 2));
+      }
+    };
+  </script>
+</body>
+</html>
