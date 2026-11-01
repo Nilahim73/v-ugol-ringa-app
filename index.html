@@ -72,6 +72,51 @@
       margin: 18px 0 10px 4px;
     }
 
+    /* Карточки залов */
+    .halls-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hall-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hall-card.active {
+      border-color: var(--accent);
+      background: rgba(229, 57, 53, 0.08);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .hall-info .hall-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .hall-info .hall-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hall-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      color: var(--gold);
+      font-weight: 600;
+    }
+
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -219,13 +264,37 @@
       font-weight: 700;
     }
 
-    .input-box input, .input-box select {
+    .input-box input {
       background: transparent;
       border: none;
       color: #fff;
       font-size: 14px;
       outline: none;
       width: 100%;
+    }
+
+    /* Музыкальный блок */
+    .music-banner {
+      margin-top: 16px;
+      background: rgba(245, 166, 35, 0.08);
+      border: 1px dashed var(--gold);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .music-banner .m-text {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .music-banner .m-sub {
+      font-size: 10px;
+      color: var(--text-muted);
     }
 
     /* Нижняя кнопка */
@@ -268,15 +337,30 @@
     <div class="subtitle">Персональный тренер по боксу и ОФП</div>
   </header>
 
-  <!-- Локация -->
+  <!-- Залы из Amvera -->
   <div class="section-title">📍 Выберите зал</div>
-  <div class="input-box" style="margin-top:0;">
-    <label>Локация тренировки</label>
-    <select id="gymSelect">
-      <option value="Зал 1 (Центр / Основной)">Зал №1 (Центральный ринг)</option>
-      <option value="Зал 2 (Север / Кроссфит)">Зал №2 (Кроссфит зона)</option>
-      <option value="Договорной зал / Выезд">Зал по согласованию</option>
-    </select>
+  <div class="halls-container">
+    <div class="hall-card active" data-hall="dvorec" data-hallname="Дворец спорта">
+      <div class="hall-info">
+        <div class="hall-name">🏛 Дворец спорта</div>
+        <div class="hall-sub">Большой боксерский ринг, снаряды</div>
+      </div>
+      <div class="hall-tag">Основной</div>
+    </div>
+    <div class="hall-card" data-hall="burevestnik" data-hallname="Буревестник">
+      <div class="hall-info">
+        <div class="hall-name">⚡ Буревестник</div>
+        <div class="hall-sub">Кроссфит-зона, тяжелые мешки</div>
+      </div>
+      <div class="hall-tag">Интенсив</div>
+    </div>
+    <div class="hall-card" data-hall="imperator" data-hallname="Император">
+      <div class="hall-info">
+        <div class="hall-name">👑 Император</div>
+        <div class="hall-sub">Персональные спарринги, комфорт</div>
+      </div>
+      <div class="hall-tag">VIP</div>
+    </div>
   </div>
 
   <!-- Направление -->
@@ -285,22 +369,22 @@
     <div class="card-option active" data-program="Школа бокса (техника, защита, передвижения)">
       <div class="icon">🥊</div>
       <div class="title">Школа бокса</div>
-      <div class="desc">Техника ударов, глухая/активная защита, классические передвижения</div>
+      <div class="desc">Техника ударов, защита, классические передвижения</div>
     </div>
     <div class="card-option" data-program="Удары ногами">
       <div class="icon">🥋</div>
       <div class="title">Удары ногами</div>
-      <div class="desc">Постановка траектории, баланс, силовые и серийные удары</div>
+      <div class="desc">Постановка траектории, баланс, силовые удары</div>
     </div>
     <div class="card-option" data-program="Табата / КроссФит (Интенсив)">
       <div class="icon">🔥</div>
       <div class="title">Табата / КроссФит</div>
-      <div class="desc">Скоростно-силовая выносливость, взрывная работа, кардио</div>
+      <div class="desc">Скоростно-силовая выносливость, кардио</div>
     </div>
     <div class="card-option" data-program="Комплекс (Бокс + ОФП)">
       <div class="icon">⚡</div>
       <div class="title">Комплекс</div>
-      <div class="desc">Боксерская база + круговой силовой блок в конце</div>
+      <div class="desc">Боксерская база + силовой блок</div>
     </div>
   </div>
 
@@ -320,11 +404,12 @@
   <div class="section-title">⏰ Свободное время</div>
   <div class="time-grid" id="timesContainer">
     <div class="time-slot active">09:00</div>
-    <div class="time-slot">11:00</div>
-    <div class="time-slot">14:00</div>
+    <div class="time-slot">10:30</div>
+    <div class="time-slot">12:00</div>
+    <div class="time-slot">15:00</div>
     <div class="time-slot">17:00</div>
-    <div class="time-slot">19:00</div>
-    <div class="time-slot">20:30</div>
+    <div class="time-slot">18:30</div>
+    <div class="time-slot">20:00</div>
   </div>
 
   <!-- Контакты -->
@@ -338,7 +423,16 @@
     <input type="text" id="clientPhone" placeholder="+7 (___) ___-__-__">
   </div>
 
-  <!-- Кнопка -->
+  <!-- Музыкальный плейлист тренера -->
+  <a class="music-banner" href="https://t.me/nilahimmusic" target="_blank">
+    <div>
+      <div class="m-text">🎧 Музыка для тренировок (Suno)</div>
+      <div class="m-sub">Авторские треки для ринга в канале @nilahimmusic</div>
+    </div>
+    <span style="font-size:18px;">🔥</span>
+  </a>
+
+  <!-- Кнопка записи -->
   <div class="footer-bar">
     <button class="btn-submit" id="submitBtn">Записаться в угол ринга</button>
   </div>
@@ -350,6 +444,18 @@
       tg.ready();
     }
 
+    // Выбор зала (ключи из config.toml: dvorec, burevestnik, imperator)
+    let selectedHallKey = 'dvorec';
+    let selectedHallName = 'Дворец спорта';
+    document.querySelectorAll('.hall-card').forEach(card => {
+      card.onclick = () => {
+        document.querySelectorAll('.hall-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedHallKey = card.getAttribute('data-hall');
+        selectedHallName = card.getAttribute('data-hallname');
+      };
+    });
+
     // Генерация ближайших 7 дней
     const datesContainer = document.getElementById('datesContainer');
     const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
@@ -357,6 +463,7 @@
     const now = new Date();
 
     let selectedDate = '';
+    let selectedIsoDate = '';
 
     for (let i = 0; i < 7; i++) {
       const d = new Date();
@@ -368,12 +475,17 @@
         <div class="day-num">${d.getDate()}</div>
       `;
       const dateStr = `${d.getDate()} ${months[d.getMonth()]}`;
-      if (i === 0) selectedDate = dateStr;
+      const isoStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (i === 0) {
+        selectedDate = dateStr;
+        selectedIsoDate = isoStr;
+      }
 
       card.onclick = () => {
         document.querySelectorAll('.date-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         selectedDate = dateStr;
+        selectedIsoDate = isoStr;
       };
       datesContainer.appendChild(card);
     }
@@ -408,7 +520,7 @@
       };
     });
 
-    // Автозаполнение имени из Telegram
+    // Автозаполнение данных из профиля Telegram
     if (tg?.initDataUnsafe?.user) {
       const user = tg.initDataUnsafe.user;
       document.getElementById('clientName').value = [user.first_name, user.last_name].filter(Boolean).join(' ');
@@ -417,33 +529,33 @@
       }
     }
 
-    // Отправка данных
+    // Отправка заявки в бота через Telegram WebApp
     document.getElementById('submitBtn').onclick = () => {
       const name = document.getElementById('clientName').value.trim();
       const phone = document.getElementById('clientPhone').value.trim();
-      const gym = document.getElementById('gymSelect').value;
 
       if (!name) {
         alert('Пожалуйста, укажите ваше имя');
         return;
       }
 
-      const bookingData = {
-        action: "booking",
-        trainer: "Евгений Михалин",
-        gym: gym,
+      const bookingPayload = {
+        type: "webapp_booking",
+        hall_key: selectedHallKey,
+        hall_name: selectedHallName,
         program: selectedProgram,
         format: selectedFormat,
-        date: selectedDate,
-        time: selectedTime,
+        date_str: selectedDate,
+        date_iso: selectedIsoDate,
+        time_slot: selectedTime,
         client_name: name,
-        client_contact: phone
+        client_phone: phone
       };
 
       if (tg) {
-        tg.sendData(JSON.stringify(bookingData));
+        tg.sendData(JSON.stringify(bookingPayload));
       } else {
-        alert('Заявка сформирована: ' + JSON.stringify(bookingData, null, 2));
+        alert('Заявка сформирована для ' + selectedHallName + ': ' + JSON.stringify(bookingPayload, null, 2));
       }
     };
   </script>
