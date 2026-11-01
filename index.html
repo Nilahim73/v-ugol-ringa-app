@@ -589,7 +589,7 @@
       }
     }
 
-    // Отправка записи: прямая связка с ботом
+    // Надежная обработка кнопки: закрытие WebApp и переход в диалог бота
     document.getElementById('submitBtn').onclick = () => {
       const name = document.getElementById('clientName').value.trim();
       const phone = document.getElementById('clientPhone').value.trim();
@@ -604,14 +604,25 @@
         return;
       }
 
-      // Текстовая команда для бронирования слота
-      const commandText = `${selectedDate} ${selectedTime} ${selectedHallKey}`;
+      // Команда для бота: дата, время, ключ зала
+      const bookingCmd = `${selectedDate} ${selectedTime} ${selectedHallKey}`;
+      const shareUrl = `https://t.me/v_ugol_ringa_bot?start=${encodeURIComponent(selectedHallKey)}`;
 
-      if (tg) {
-        tg.sendData(commandText);
-        tg.close();
+      // Пробуем нативный sendData, если открыто из клавиатуры
+      try {
+        if (tg && tg.sendData) {
+          tg.sendData(bookingCmd);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+
+      // Гарантированный переход в чат с ботом
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(shareUrl);
+        setTimeout(() => { tg.close(); }, 300);
       } else {
-        alert(`Сформирована запись: ${selectedHallName}, ${selectedDate} в ${selectedTime}\nКлиент: ${name} (${phone})`);
+        window.location.href = shareUrl;
       }
     };
   </script>
