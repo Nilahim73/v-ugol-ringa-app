@@ -223,7 +223,7 @@
 
     .time-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       margin-top: 10px;
     }
@@ -232,7 +232,7 @@
       background: var(--card-bg);
       border: 1.5px solid var(--border);
       border-radius: 8px;
-      padding: 10px 4px;
+      padding: 10px 2px;
       text-align: center;
       font-size: 13px;
       font-weight: 700;
@@ -401,8 +401,8 @@
   <div class="section-title">📅 Дата занятия</div>
   <div class="dates-scroll" id="datesContainer"></div>
 
-  <!-- Свободные окна (динамически пересчитываются под день и зал) -->
-  <div class="section-title">⏰ Свободное время в зале</div>
+  <!-- Свободные окна с шагом ровно 1 час -->
+  <div class="section-title">⏰ Свободное время (шаг 1 час)</div>
   <div class="time-grid" id="timesContainer"></div>
 
   <!-- Контакты -->
@@ -437,22 +437,25 @@
       tg.ready();
     }
 
-    // Расписание работы по залам (соответствует config.toml и core.py)
-    const HALL_SCHEDULE = {
+    // Расписание работы по залам с шагом ровно 1 час (01:00)
+    const HALL_CONFIG = {
       dvorec: {
         name: "Дворец спорта",
-        days: [0, 1, 2, 3, 4, 5, 6], // все дни
-        slots: ["09:00", "10:30", "12:00", "15:00", "16:30", "18:00", "19:30"]
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startHour: 9,
+        endHour: 21
       },
       burevestnik: {
         name: "Буревестник",
-        days: [1, 2, 3, 4, 5], // будни
-        slots: ["10:00", "11:30", "14:00", "17:00", "18:30", "20:00"]
+        days: [1, 2, 3, 4, 5],
+        startHour: 10,
+        endHour: 21
       },
       imperator: {
         name: "Император",
-        days: [0, 2, 4, 6], // вт, чт, сб, вс
-        slots: ["11:00", "13:00", "15:30", "17:30", "19:00"]
+        days: [0, 2, 4, 6],
+        startHour: 11,
+        endHour: 20
       }
     };
 
@@ -462,16 +465,15 @@
     let selectedDateObj = new Date();
     let selectedTime = '';
 
-    // Пересчет доступных слотов времени с учетом зала и текущего времени
+    // Пересчет доступных слотов времени с шагом ровно 1:00 (09:00, 10:00, 11:00...)
     function updateTimeSlots() {
       const container = document.getElementById('timesContainer');
       container.innerHTML = '';
 
-      const hall = HALL_SCHEDULE[selectedHallKey] || HALL_SCHEDULE.dvorec;
-      const dayOfWeek = selectedDateObj.getDay(); // 0 = Вс, 1 = Пн...
+      const hall = HALL_CONFIG[selectedHallKey] || HALL_CONFIG.dvorec;
+      const dayOfWeek = selectedDateObj.getDay();
       const isToday = selectedDateObj.toDateString() === (new Date()).toDateString();
       const currentHours = (new Date()).getHours();
-      const currentMinutes = (new Date()).getMinutes();
 
       // Проверка рабочих дней зала
       const isWorkingDay = hall.days.includes(dayOfWeek);
@@ -482,22 +484,25 @@
         return;
       }
 
-      // Фильтрация прошедших часов, если выбран сегодняшний день
-      let availableSlots = hall.slots.filter(slot => {
-        if (!isToday) return true;
-        const [h, m] = slot.split(':').map(Number);
-        return (h > currentHours) || (h === currentHours && m > currentMinutes + 45);
-      });
+      // Генерация сетки часов с шагом ровно 1 час: [09:00, 10:00, 11:00, ...]
+      const slots = [];
+      for (let h = hall.startHour; h <= hall.endHour; h++) {
+        const timeStr = String(h).padStart(2, '0') + ':00';
+        if (isToday && h <= currentHours) {
+          continue; // пропускаем прошедшие часы на сегодня
+        }
+        slots.push(timeStr);
+      }
 
-      if (availableSlots.length === 0) {
+      if (slots.length === 0) {
         container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color: var(--text-muted); font-size:12px; padding:12px;">На сегодня свободных окон больше нет.</div>';
         selectedTime = '';
         return;
       }
 
-      selectedTime = availableSlots[0];
+      selectedTime = slots[0];
 
-      availableSlots.forEach((slot, index) => {
+      slots.forEach((slot, index) => {
         const div = document.createElement('div');
         div.className = 'time-slot' + (index === 0 ? ' active' : '');
         div.innerText = slot;
@@ -599,11 +604,10 @@
         return;
       }
 
-      // Текстовая команда в формате, который понимает dialog.py на сервере Amvera
+      // Текстовая команда для бронирования слота
       const commandText = `${selectedDate} ${selectedTime} ${selectedHallKey}`;
 
       if (tg) {
-        // Отправка в диалог
         tg.sendData(commandText);
         tg.close();
       } else {
