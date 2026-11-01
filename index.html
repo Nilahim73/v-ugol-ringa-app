@@ -237,6 +237,7 @@
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .time-slot.active {
@@ -400,17 +401,9 @@
   <div class="section-title">📅 Дата занятия</div>
   <div class="dates-scroll" id="datesContainer"></div>
 
-  <!-- Свободные окна -->
-  <div class="section-title">⏰ Свободное время</div>
-  <div class="time-grid" id="timesContainer">
-    <div class="time-slot active">09:00</div>
-    <div class="time-slot">10:30</div>
-    <div class="time-slot">12:00</div>
-    <div class="time-slot">15:00</div>
-    <div class="time-slot">17:00</div>
-    <div class="time-slot">18:30</div>
-    <div class="time-slot">20:00</div>
-  </div>
+  <!-- Свободные окна (динамически пересчитываются под день и зал) -->
+  <div class="section-title">⏰ Свободное время в зале</div>
+  <div class="time-grid" id="timesContainer"></div>
 
   <!-- Контакты -->
   <div class="section-title">👤 Данные атлета</div>
@@ -444,15 +437,87 @@
       tg.ready();
     }
 
-    // Выбор зала (ключи из config.toml: dvorec, burevestnik, imperator)
+    // Расписание работы по залам (соответствует config.toml и core.py)
+    const HALL_SCHEDULE = {
+      dvorec: {
+        name: "Дворец спорта",
+        days: [0, 1, 2, 3, 4, 5, 6], // все дни
+        slots: ["09:00", "10:30", "12:00", "15:00", "16:30", "18:00", "19:30"]
+      },
+      burevestnik: {
+        name: "Буревестник",
+        days: [1, 2, 3, 4, 5], // будни
+        slots: ["10:00", "11:30", "14:00", "17:00", "18:30", "20:00"]
+      },
+      imperator: {
+        name: "Император",
+        days: [0, 2, 4, 6], // вт, чт, сб, вс
+        slots: ["11:00", "13:00", "15:30", "17:30", "19:00"]
+      }
+    };
+
     let selectedHallKey = 'dvorec';
     let selectedHallName = 'Дворец спорта';
+    let selectedDate = '';
+    let selectedDateObj = new Date();
+    let selectedTime = '';
+
+    // Пересчет доступных слотов времени с учетом зала и текущего времени
+    function updateTimeSlots() {
+      const container = document.getElementById('timesContainer');
+      container.innerHTML = '';
+
+      const hall = HALL_SCHEDULE[selectedHallKey] || HALL_SCHEDULE.dvorec;
+      const dayOfWeek = selectedDateObj.getDay(); // 0 = Вс, 1 = Пн...
+      const isToday = selectedDateObj.toDateString() === (new Date()).toDateString();
+      const currentHours = (new Date()).getHours();
+      const currentMinutes = (new Date()).getMinutes();
+
+      // Проверка рабочих дней зала
+      const isWorkingDay = hall.days.includes(dayOfWeek);
+
+      if (!isWorkingDay) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color: var(--text-muted); font-size:12px; padding:12px;">В этот день зал закрыт. Выберите другой день или зал.</div>';
+        selectedTime = '';
+        return;
+      }
+
+      // Фильтрация прошедших часов, если выбран сегодняшний день
+      let availableSlots = hall.slots.filter(slot => {
+        if (!isToday) return true;
+        const [h, m] = slot.split(':').map(Number);
+        return (h > currentHours) || (h === currentHours && m > currentMinutes + 45);
+      });
+
+      if (availableSlots.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color: var(--text-muted); font-size:12px; padding:12px;">На сегодня свободных окон больше нет.</div>';
+        selectedTime = '';
+        return;
+      }
+
+      selectedTime = availableSlots[0];
+
+      availableSlots.forEach((slot, index) => {
+        const div = document.createElement('div');
+        div.className = 'time-slot' + (index === 0 ? ' active' : '');
+        div.innerText = slot;
+        div.onclick = () => {
+          document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
+          div.classList.add('active');
+          selectedTime = slot;
+        };
+        container.appendChild(div);
+      });
+    }
+
+    // Выбор зала
     document.querySelectorAll('.hall-card').forEach(card => {
       card.onclick = () => {
         document.querySelectorAll('.hall-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         selectedHallKey = card.getAttribute('data-hall');
         selectedHallName = card.getAttribute('data-hallname');
+        updateTimeSlots();
       };
     });
 
@@ -461,9 +526,6 @@
     const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
     const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
     const now = new Date();
-
-    let selectedDate = '';
-    let selectedIsoDate = '';
 
     for (let i = 0; i < 7; i++) {
       const d = new Date();
@@ -475,20 +537,23 @@
         <div class="day-num">${d.getDate()}</div>
       `;
       const dateStr = `${d.getDate()} ${months[d.getMonth()]}`;
-      const isoStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       if (i === 0) {
         selectedDate = dateStr;
-        selectedIsoDate = isoStr;
+        selectedDateObj = new Date(d);
       }
 
       card.onclick = () => {
         document.querySelectorAll('.date-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         selectedDate = dateStr;
-        selectedIsoDate = isoStr;
+        selectedDateObj = new Date(d);
+        updateTimeSlots();
       };
       datesContainer.appendChild(card);
     }
+
+    // Первичная отрисовка окон
+    updateTimeSlots();
 
     // Выбор программы
     let selectedProgram = 'Школа бокса (техника, защита, передвижения)';
@@ -510,17 +575,7 @@
       };
     });
 
-    // Выбор времени
-    let selectedTime = '09:00';
-    document.querySelectorAll('.time-slot').forEach(t => {
-      t.onclick = () => {
-        document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('active'));
-        t.classList.add('active');
-        selectedTime = t.innerText;
-      };
-    });
-
-    // Автозаполнение данных из профиля Telegram
+    // Автозаполнение имени из Telegram
     if (tg?.initDataUnsafe?.user) {
       const user = tg.initDataUnsafe.user;
       document.getElementById('clientName').value = [user.first_name, user.last_name].filter(Boolean).join(' ');
@@ -529,7 +584,7 @@
       }
     }
 
-    // Отправка заявки в бота через Telegram WebApp
+    // Отправка записи: прямая связка с ботом
     document.getElementById('submitBtn').onclick = () => {
       const name = document.getElementById('clientName').value.trim();
       const phone = document.getElementById('clientPhone').value.trim();
@@ -539,23 +594,20 @@
         return;
       }
 
-      const bookingPayload = {
-        type: "webapp_booking",
-        hall_key: selectedHallKey,
-        hall_name: selectedHallName,
-        program: selectedProgram,
-        format: selectedFormat,
-        date_str: selectedDate,
-        date_iso: selectedIsoDate,
-        time_slot: selectedTime,
-        client_name: name,
-        client_phone: phone
-      };
+      if (!selectedTime) {
+        alert('Пожалуйста, выберите доступное время');
+        return;
+      }
+
+      // Текстовая команда в формате, который понимает dialog.py на сервере Amvera
+      const commandText = `${selectedDate} ${selectedTime} ${selectedHallKey}`;
 
       if (tg) {
-        tg.sendData(JSON.stringify(bookingPayload));
+        // Отправка в диалог
+        tg.sendData(commandText);
+        tg.close();
       } else {
-        alert('Заявка сформирована для ' + selectedHallName + ': ' + JSON.stringify(bookingPayload, null, 2));
+        alert(`Сформирована запись: ${selectedHallName}, ${selectedDate} в ${selectedTime}\nКлиент: ${name} (${phone})`);
       }
     };
   </script>
